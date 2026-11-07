@@ -1,4 +1,4 @@
-# Black Summer ML Classification — Blue Mountains (2019-2020)
+# Black Summer ML Classification — Blue Mountains
 
 Clasificación supervisada de coberturas terrestres en el Parque Nacional Blue Mountains tras el evento **Black Summer** (Australia, 2019-2020). Este proyecto compara cinco arquitecturas de Machine Learning utilizando datos multiespectrales de Sentinel-2.
 
