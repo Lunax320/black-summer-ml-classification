@@ -31,7 +31,7 @@ El propósito de este proyecto es desarrollar y comparar cinco arquitecturas de 
 | Nivel de procesamiento   | Level-2A (BOA - Bottom-Of-Atmosphere)     |
 | Teselas MGRS             | T56HKH y T56HKJ                           |
 | Fecha de análisis        | 19 de febrero de 2020 (Post-incendio)     |
-| Bandas utilizadas (10)   | B02, B03, B04, B05, B06, B07, B08, B8A, B11, B12 |
+| Bandas utilizadas (10)   | B01, B02, B03, B04, B05, B06, B07, B08, B11, B12 |
 | Resolución espacial      | Unificada a 20 m (Remuestreo)             |
 | Proyección               | GDA2020 / MGA zone 56 (EPSG:7856)         |
 | Plataforma de descarga   | Copernicus Data Space Ecosystem           |
