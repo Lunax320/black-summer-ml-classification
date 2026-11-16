@@ -1,0 +1,11 @@
+Clase	precision	recall	f1-score	support
+Agua	1.0	0.9993	0.9996	5543.0
+UrbanizacionA	0.9121	0.9149	0.9135	329.0
+Pasto	0.9903	0.9871	0.9887	309.0
+VegetacionBoscosaSana	0.9882	0.9799	0.984	1194.0
+VegetacionBoscosaQuemada	0.999	0.9996	0.9993	13348.0
+Nubes	0.9361	0.9469	0.9414	433.0
+Sombras	0.9884	1.0	0.9942	85.0
+accuracy	0.9958	0.9958	0.9958	0.9958
+macro avg	0.9734	0.9754	0.9744	21241.0
+weighted avg	0.9958	0.9958	0.9958	21241.0
