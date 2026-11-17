@@ -4,7 +4,6 @@
 \usepackage[spanish, es-tabla]{babel}
 \usepackage{amsmath, amssymb}
 \usepackage{graphicx}
-\graphicspath{{Figures/}}
 \usepackage{booktabs}
 \usepackage{geometry}
 \geometry{margin=2cm}
@@ -277,6 +276,34 @@ El conjunto total consolidó 70.802 píxeles muestreados. Para garantizar la rep
 
 Para modelos sensibles a la escala (como Redes Neuronales o SVM), los datos fueron estandarizados ajustando la media y varianza exclusivamente sobre el conjunto de entrenamiento. Sin embargo, para los modelos basados en árboles de decisión se utilizaron los valores espectrales crudos (\textit{raw}), dado que los algoritmos de partición jerárquica son invariantes ante transformaciones monótonas de las variables predictoras \cite{breiman1984classification}. Esta decisión metodológica preserva la interpretabilidad física directa de los umbrales de reflectancia en las reglas de decisión.
 
+Para asegurar un entorno reproducible y libre de sesgos entre los distintos modelos evaluados, el flujo tabular se estructuró mediante tres módulos automatizados en Python:
+\begin{enumerate}
+    \item \textbf{Extracción espacial y tabulación (\texttt{generar\_tabulaciones.py}):} Mediante operaciones vectorizadas en \texttt{NumPy} y algoritmos geométricos de inclusión puntual (\textit{ray-casting}), se intersectaron los polígonos de entrenamiento provenientes del archivo \texttt{AfterProy2.scpx} con el mosaico multibanda de 10 bandas a 20 m (\texttt{EPSG:7856}). Se filtraron las celdas exteriores (\texttt{NoData = 0}) y se eliminaron duplicados espaciales por par fila-columna, exportando el conjunto de entrenamiento (\texttt{AfterProy2\_Training\_Tabulado.tsv}) y el inventario completo de píxeles válidos de la escena para la fase de inferencia posterior.
+    \item \textbf{Partición y estandarización (\texttt{base\_modelos.py}):} Sobre los 70.802 píxeles extraídos (Tabla \ref{tab:distribucion_clases}), se ejecutó una partición estratificada fija (\texttt{random\_state = 42}) en 70\% entrenamiento ($n = 49.561$) y 30\% prueba ($n = 21.241$). Posteriormente, se ajustó un transformador de puntuación estándar (\texttt{StandardScaler}, $\mu = 0, \sigma = 1$) exclusivamente sobre las bandas de entrenamiento, serializando el objeto (\texttt{scaler.pkl}) para garantizar coherencia radiométrica durante la evaluación y la futura predicción espacial.
+    \item \textbf{Marco unificado de evaluación (\texttt{evaluar\_modelos.py}):} Se estandarizó el registro de la búsqueda de hiperparámetros (\texttt{historial\_hpo\_*.tsv}), el cálculo de métricas globales y categóricas (\texttt{metricas\_*.tsv}, \texttt{reporte\_clases\_*.tsv}) y la generación de matrices de confusión $7 \times 7$ a 300 dpi, asegurando comparabilidad directa entre los cinco clasificadores.
+\end{enumerate}
+
+\begin{table}[H]
+    \centering
+    \caption{Distribución muestral y representatividad espacial de las macroclases en el conjunto tabulado (resolución de celda: $20\text{ m} \times 20\text{ m}$).}
+    \label{tab:distribucion_clases}
+    \begin{tabular}{@{}clrrrr@{}}
+        \toprule
+        \textbf{ID} & \textbf{Macroclase} & \textbf{Píxeles Totales} & \textbf{Train (70\%)} & \textbf{Test (30\%)} & \textbf{Proporción (\%)} \\
+        \midrule
+        1 & Agua & 18.477 & 12.934 & 5.543 & 26,10\% \\
+        2 & Urbanización & 1.095 & 766 & 329 & 1,55\% \\
+        3 & Pasto & 1.030 & 721 & 309 & 1,45\% \\
+        4 & Veg. Boscosa Sana & 3.980 & 2.786 & 1.194 & 5,62\% \\
+        5 & Veg. Boscosa Quemada & 44.494 & 31.146 & 13.348 & 62,84\% \\
+        6 & Nubes & 1.443 & 1.010 & 433 & 2,04\% \\
+        7 & Sombras & 283 & 198 & 85 & 0,40\% \\
+        \midrule
+        \multicolumn{2}{@{}l}{\textbf{Total Consolidado}} & \textbf{70.802} & \textbf{49.561} & \textbf{21.241} & \textbf{100,00\%} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
 \subsection{Árboles de Decisión (Decision Trees - DT)}
 Los árboles de decisión representan modelos lógicos de caja blanca que dividen de forma recursiva el espacio de características multidimensional en hiper-rectángulos ortogonales mediante umbrales espectrales óptimos \cite{breiman1984classification}.
 
@@ -361,7 +388,7 @@ Las tres bandas líderes agrupan conjuntamente el \textbf{74.27\%} del peso deci
     \label{fig:arbol_estructura}
 \end{figure}
 
-\subsection{Bono Especializado: Ensamble Random Forest (RF)}
+\subsection{Bono: Ensamble Random Forest (RF)}
 Como contribución avanzada sugerida para superar las limitaciones de varianza del árbol individual, se implementó la arquitectura de ensamble \textbf{Random Forest (RF)} \cite{breiman2001random}. Random Forest construye una multiplicidad de árboles descorrelacionados mediante muestreo bootstrap con reemplazo de las observaciones y selección aleatoria de subespacios de bandas en cada división (\textit{feature bagging}).
 
 \subsubsection{Optimización y Configuración de Hiperparámetros}
@@ -413,6 +440,63 @@ Al promediar la importancia de características a lo largo de 200 árboles desco
     \text{NBR} = \frac{\rho_{\text{NIR}} - \rho_{\text{SWIR}}}{\rho_{\text{NIR}} + \rho_{\text{SWIR}}} = \frac{\text{B08} - \text{B12}}{\text{B08} + \text{B12}}
 \end{equation}
 El algoritmo de ensamble identificó autónomamente que el contraste entre la alta reflectancia del dosel foliar sano en el NIR y la marcada reflectancia del sustrato calcinado y deshidratado en el SWIR conforma la señal radiométrica más diagnóstica de la catástrofe del Black Summer.
+
+\subsection{Redes Neuronales Artificiales (Artificial Neural Networks - ANN)}
+Las Redes Neuronales Artificiales basadas en el Perceptrón Multicapa (\textit{Multi-Layer Perceptron}, MLP) constituyen aproximadores universales capaces de modelar fronteras de decisión altamente no lineales en espacios espectrales de alta dimensionalidad \cite{rumelhart1986learning}. A diferencia de los modelos basados en particiones ortogonales, la arquitectura neuronal proyecta las 10 bandas espectrales estandarizadas a través de capas ocultas densamente conectadas, capturando interacciones radiométricas complejas entre el visible (VIS), red edge y el SWIR.
+
+\subsubsection{Optimización de Hiperparámetros (HPO)}
+El entrenamiento se implementó mediante \texttt{MLPClassifier} utilizando el optimizador estocástico \texttt{Adam}, incorporando parada temprana (\texttt{early\_stopping = True}, con 10\% de validación interna y tolerancia de 10 épocas sin mejora) para prevenir el sobreajuste y optimizar el tiempo de convergencia. Se ejecutó una búsqueda sistemática en cuadrícula (\texttt{GridSearchCV}) con validación cruzada estratificada de 3 pliegues (\textit{3-fold Stratified CV}), maximizando el $F_1\text{-score}$ macro sobre \textbf{48 combinaciones} (144 ajustes totales) en un tiempo de cómputo de 3,02 minutos:
+
+\begin{itemize}
+    \item \textbf{Arquitectura de capas ocultas (\texttt{hidden\_layer\_sizes}):} $[(64,), (128,), (64, 32), (128, 64)]$.
+    \item \textbf{Función de activación (\texttt{activation}):} \texttt{'relu'} vs. \texttt{'tanh'}.
+    \item \textbf{Regularización $L_2$ (\texttt{alpha}):} $[0{,}0001;\ 0{,}001;\ 0{,}01]$.
+    \item \textbf{Tasa de aprendizaje inicial (\texttt{learning\_rate\_init}):} $[0{,}001;\ 0{,}005]$.
+\end{itemize}
+
+La configuración óptima identificada alcanzó un puntaje medio de validación cruzada de $F_1\text{-macro} = 0{,}9743 \pm 0{,}0019$, correspondiendo a una arquitectura profunda de dos capas ocultas con \textbf{128 y 64 neuronas} (\texttt{hidden\_layer\_sizes = (128, 64)}), función de activación tangente hiperbólica (\texttt{activation = 'tanh'}), regularización \texttt{alpha = 0.001} y tasa de aprendizaje inicial learning\_rate\_init = 0.005. El uso de \texttt{tanh} favoreció la estabilización de gradientes sobre las variables estandarizadas centradas en cero, permitiendo discriminar con precisión las transiciones espectrales sutiles entre coberturas minoritarias.
+
+\subsubsection{Evaluación del Rendimiento en el Conjunto de Test}
+Al evaluar la red neuronal óptima sobre el 30\% de datos independientes ($n = 21.241$ píxeles), el modelo obtuvo el desempeño global más alto registrado hasta el momento:
+\begin{itemize}
+    \item \textbf{Overall Accuracy (OA):} $0{,}9958$ ($99{,}58\%$, equivalente a 21.152 píxeles clasificados correctamente).
+    \item \textbf{Coeficiente Kappa de Cohen ($\kappa$):} $0{,}9921$, confirmando una concordancia casi perfecta descartando el azar.
+    \item \textbf{Precisión Macro:} $0{,}9733$ | \textbf{Recall Macro:} $0{,}9757$ | \textbf{$F_1$-Score Macro:} $0{,}9744$.
+    \item \textbf{$F_1$-Score Ponderado:} $0{,}9958$.
+\end{itemize}
+
+En la Tabla \ref{tab:reporte_ann} se detalla el comportamiento categórico por macroclase en el conjunto de prueba.
+
+\begin{table}[H]
+    \centering
+    \caption{Métricas detalladas por macroclase para el modelo Artificial Neural Network (ANN) en el conjunto de test.}
+    \label{tab:reporte_ann}
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        \textbf{Macroclase} & \textbf{Precisión} & \textbf{Recall} & \textbf{$F_1$-Score} & \textbf{Soporte (Píxeles)} \\
+        \midrule
+        Agua & 1,0000 & 0,9993 & 0,9996 & 5.543 \\
+        Urbanización & 0,9121 & 0,9149 & 0,9135 & 329 \\
+        Pasto & 0,9903 & 0,9871 & 0,9887 & 309 \\
+        Veg. Boscosa Sana & 0,9882 & 0,9799 & 0,9840 & 1.194 \\
+        Veg. Boscosa Quemada & 0,9990 & 0,9996 & 0,9993 & 13.348 \\
+        Nubes & 0,9361 & 0,9469 & 0,9414 & 433 \\
+        Sombras & 0,9884 & 1,0000 & 0,9942 & 85 \\
+        \midrule
+        \textbf{Promedio Macro} & \textbf{0,9733} & \textbf{0,9757} & \textbf{0,9744} & \textbf{21.241} \\
+        \textbf{Promedio Ponderado} & \textbf{0,9958} & \textbf{0,9958} & \textbf{0,9958} & \textbf{21.241} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Como evidencia la matriz de confusión (Figura \ref{fig:cm_ann}), la red neuronal demostró una capacidad notable para resolver el desbalanceo de clases: clasificó con exactitud el \textbf{100\% de los píxeles de sombras} (85 de 85, $F_1 = 0{,}9942$) y el \textbf{99,96\% de la vegetación boscosa quemada} (13.342 de 13.348, $F_1 = 0{,}9993$), restringiendo las únicas confusiones menores al solapamiento radiométrico natural entre techos urbanos brillantes y nubosidad periférica (25 y 19 píxeles cruzados, respectivamente).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.72\textwidth]{matriz_confusion_ann.jpg}
+    \caption{Matriz de confusión del modelo Artificial Neural Network (ANN) sobre el conjunto de test (21.241 píxeles).}
+    \label{fig:cm_ann}
+\end{figure}
 
 
 \bibliographystyle{plain}
