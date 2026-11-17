@@ -1,0 +1,2 @@
+Modelo	Overall_Accuracy	Kappa	Precision_Macro	Recall_Macro	F1_Macro	F1_Weighted
+RF	0.9951	0.9907	0.9729	0.973	0.9729	0.9951

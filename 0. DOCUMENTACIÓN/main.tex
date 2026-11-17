@@ -4,6 +4,7 @@
 \usepackage[spanish, es-tabla]{babel}
 \usepackage{amsmath, amssymb}
 \usepackage{graphicx}
+\graphicspath{{Figures/}}
 \usepackage{booktabs}
 \usepackage{geometry}
 \geometry{margin=2cm}
@@ -266,6 +267,152 @@ Para corregir este problema, se empleó la herramienta Traducir ráster (\texttt
     \caption{Ráster multibanda libre de bordes oscuros.}
     \label{fig:raster_limpio}
 \end{figure}
+
+\section{Fase 2: Preprocesamiento Tabular y Entrenamiento de Modelos de Machine Learning}
+
+\subsection{Construcción de la Base de Datos y Prevención de Fuga de Información (\textit{Data Leakage})}
+A partir de los polígonos de entrenamiento y validación terrestre construidos sobre la escena Sentinel-2 de Blue Mountains, se extrajeron los valores de reflectancia de 10 bandas espectrales: aerosol costero (B01), azul (B02), verde (B03), rojo (B04), tres bandas de borde rojo (B05, B06, B07), infrarrojo cercano ancho (B08), e infrarrojos de onda corta (B11 y B12). Cada fila del conjunto tabulado representa la firma espectral puntual de un píxel asociada a una de las 7 macroclases identificadas: (1) Agua, (2) Urbanización, (3) Pasto, (4) Vegetación Boscosa Sana, (5) Vegetación Boscosa Quemada, (6) Nubes y (7) Sombras.
+
+El conjunto total consolidó 70.802 píxeles muestreados. Para garantizar la reproducibilidad y validez estadística de los experimentos, la base se particionó de manera previa en un \textbf{70\% para entrenamiento} ($n = 49.561$) y un \textbf{30\% independiente para prueba} ($n = 21.241$), aplicando un muestreo estratificado para conservar la proporción natural de clases. 
+
+Para modelos sensibles a la escala (como Redes Neuronales o SVM), los datos fueron estandarizados ajustando la media y varianza exclusivamente sobre el conjunto de entrenamiento. Sin embargo, para los modelos basados en árboles de decisión se utilizaron los valores espectrales crudos (\textit{raw}), dado que los algoritmos de partición jerárquica son invariantes ante transformaciones monótonas de las variables predictoras \cite{breiman1984classification}. Esta decisión metodológica preserva la interpretabilidad física directa de los umbrales de reflectancia en las reglas de decisión.
+
+\subsection{Árboles de Decisión (Decision Trees - DT)}
+Los árboles de decisión representan modelos lógicos de caja blanca que dividen de forma recursiva el espacio de características multidimensional en hiper-rectángulos ortogonales mediante umbrales espectrales óptimos \cite{breiman1984classification}.
+
+\subsubsection{Optimización de Hiperparámetros (HPO)}
+Para evitar el sobreajuste (\textit{overfitting}) intrínseco de los árboles profundos sobre datos satelitales, se ejecutó una búsqueda exhaustiva en cuadrícula (\texttt{GridSearchCV}) acoplada a una validación cruzada estratificada de 3 pliegues (\textit{3-fold Stratified CV}). La métrica objetivo de optimización fue el $F_1\text{-score}$ macro, asegurando igual ponderación para macroclases con cobertura espacial reducida (como sombras o asentamientos urbanos).
+
+La malla explorada consideró:
+\begin{itemize}
+    \item \textbf{Criterio de impureza:} Gini vs. Entropía de Shannon vs. Log-loss.
+    \item \textbf{Profundidad máxima (\texttt{max\_depth}):} $[5, 10, 15, 20, 25, \text{None}]$.
+    \item \textbf{Muestras mínimas para división (\texttt{min\_samples\_split}):} $[2, 5, 10, 20]$.
+    \item \textbf{Muestras mínimas por hoja (\texttt{min\_samples\_leaf}):} $[1, 2, 4, 8, 16]$.
+    \item \textbf{Ponderación de clases (\texttt{class\_weight}):} $\text{None}$ vs. $\text{Balanced}$.
+\end{itemize}
+
+La configuración óptima encontrada correspondió a: \texttt{criterion = 'entropy'}, \texttt{max\_depth = 20}, \texttt{min\_samples\_split = 2}, \texttt{min\_samples\_leaf = 1} y \texttt{class\_weight = 'balanced'}. El uso de entropía permitió maximizar la ganancia de información en la frontera de transición espectral entre áreas calcinadas y bosque intacto, mientras que la profundidad máxima de 20 niveles evitó la memorización de ruido espectral.
+
+\subsubsection{Evaluación del Rendimiento en el Conjunto de Test}
+El modelo optimizado se evaluó sobre el 30\% de datos independientes, alcanzando las siguientes métricas globales:
+\begin{itemize}
+    \item \textbf{Overall Accuracy (OA):} $0.9928$ ($99.28\%$).
+    \item \textbf{Coeficiente Kappa de Cohen ($\kappa$):} $0.9865$, evidenciando una concordancia casi perfecta más allá de asignaciones aleatorias.
+    \item \textbf{Precisión Macro:} $0.9565$ | \textbf{Recall Macro:} $0.9572$ | \textbf{$F_1$-Score Macro:} $0.9568$.
+    \item \textbf{$F_1$-Score Ponderado:} $0.9928$.
+\end{itemize}
+
+En la Tabla \ref{tab:reporte_dt} se desglosa el desempeño por categoría de cobertura terrestre.
+
+\begin{table}[H]
+    \centering
+    \caption{Métricas detalladas por macroclase para el modelo Decision Trees (DT) en el conjunto de test.}
+    \label{tab:reporte_dt}
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        \textbf{Macroclase} & \textbf{Precisión} & \textbf{Recall} & \textbf{$F_1$-Score} & \textbf{Soporte (Píxeles)} \\
+        \midrule
+        Agua & 0.9995 & 0.9991 & 0.9993 & 5.543 \\
+        Urbanización & 0.8794 & 0.8419 & 0.8602 & 329 \\
+        Pasto & 0.9744 & 0.9871 & 0.9807 & 309 \\
+        Veg. Boscosa Sana & 0.9732 & 0.9715 & 0.9723 & 1.194 \\
+        Veg. Boscosa Quemada & 0.9976 & 0.9982 & 0.9979 & 13.348 \\
+        Nubes & 0.9176 & 0.9261 & 0.9218 & 433 \\
+        Sombras & 0.9540 & 0.9765 & 0.9651 & 85 \\
+        \midrule
+        \textbf{Promedio Macro} & \textbf{0.9565} & \textbf{0.9572} & \textbf{0.9568} & \textbf{21.241} \\
+        \textbf{Promedio Ponderado} & \textbf{0.9927} & \textbf{0.9928} & \textbf{0.9928} & \textbf{21.241} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+La matriz de confusión resultante (Figura \ref{fig:cm_dt}) corrobora una discriminación sobresaliente. De los 13.348 píxeles de vegetación quemada, el árbol clasificó correctamente 13.324 ($99.82\%$). Las leves confusiones residuales se concentraron entre urbanización y nubes periféricas debido a respuestas radiométricas de alta reflectancia compartidas en el espectro visible.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.72\textwidth]{matriz_confusion_dt.png}
+    \caption{Matriz de confusión del modelo Decision Tree (DT) sobre el conjunto de test (21.241 píxeles).}
+    \label{fig:cm_dt}
+\end{figure}
+
+\subsubsection{Análisis de Importancia de Bandas Espectrales (\textit{Feature Importance})}
+Una de las mayores ventajas analíticas del árbol de decisión en teledetección es su capacidad inherente para revelar la influencia relativa de cada longitud de onda en la discriminación de coberturas. La impureza de corte acumulada permitió jerarquizar las bandas Sentinel-2, como se ilustra en la Figura \ref{fig:importancia_dt}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.82\textwidth]{importancia_bandas_dt.png}
+    \caption{Importancia relativa de las bandas espectrales de Sentinel-2 estimada por el modelo Decision Tree.}
+    \label{fig:importancia_dt}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Banda 7 (Red Edge 3 -- 783 nm) con 31.87\% de importancia:} Se constituyó como el predictor dominante. La región del borde rojo vegetativo captura la inflexión crítica entre la absorción fotoquímica de pigmentos y la dispersión por mesófilo celular, permitiendo segmentar el dosel arbóreo intacto frente a las copas chamuscadas y el pasto seco.
+    \item \textbf{Banda 2 (Azul -- 490 nm) con 25.96\% de importancia:} Esencial para aislar los cuerpos de agua (que absorben fuertemente a mayores longitudes de onda pero reflejan en azul) y segregar sombras orográficas y nubosidad.
+    \item \textbf{Banda 12 (SWIR-2 -- 2190 nm) con 16.44\% de importancia:} La longitud de onda corta infrarroja es directamente sensible al colapso de humedad en la biomasa foliar y la acumulación de carbón pirogénico y cenizas, variables diagnósticas del megaincendio.
+\end{enumerate}
+
+Las tres bandas líderes agrupan conjuntamente el \textbf{74.27\%} del peso decisorio global del modelo. En la Figura \ref{fig:arbol_estructura} se presenta la estructura de los primeros niveles jerárquicos del árbol de decisión, ilustrando los umbrales numéricos de reflectancia que rigen las primeras particiones.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.98\textwidth]{estructura_arbol_dt.png}
+    \caption{Diagrama jerárquico esquemático de los primeros tres niveles del árbol de decisión podado.}
+    \label{fig:arbol_estructura}
+\end{figure}
+
+\subsection{Bono Especializado: Ensamble Random Forest (RF)}
+Como contribución avanzada sugerida para superar las limitaciones de varianza del árbol individual, se implementó la arquitectura de ensamble \textbf{Random Forest (RF)} \cite{breiman2001random}. Random Forest construye una multiplicidad de árboles descorrelacionados mediante muestreo bootstrap con reemplazo de las observaciones y selección aleatoria de subespacios de bandas en cada división (\textit{feature bagging}).
+
+\subsubsection{Optimización y Configuración de Hiperparámetros}
+A través de \texttt{GridSearchCV} con 3 pliegues estratificados, se evaluaron 288 combinaciones de hiperparámetros (864 ajustes en total). La configuración óptima identificó:
+\begin{itemize}
+    \item \textbf{Número de estimadores (\texttt{n\_estimators}):} 200 árboles de decisión.
+    \item \textbf{Profundidad máxima (\texttt{max\_depth}):} 20 niveles.
+    \item \textbf{Criterio de selección de bandas (\texttt{max\_features}):} \texttt{'sqrt'} (selección de $\sqrt{10} \approx 3$ bandas aleatorias por nodo).
+    \item \textbf{Muestras mínimas por hoja (\texttt{min\_samples\_leaf}):} 1.
+    \item \textbf{Muestras mínimas por división (\texttt{min\_samples\_split}):} 2.
+    \item \textbf{Balanceo de pesos (\texttt{class\_weight}):} \texttt{'balanced'}.
+\end{itemize}
+
+\subsubsection{Resultados y Rendimiento Comparativo}
+El ensamble exhibió un incremento notable en la estabilidad y precisión de generalización respecto al árbol simple:
+\begin{itemize}
+    \item \textbf{Overall Accuracy (OA):} $0.9951$ ($99.51\%$).
+    \item \textbf{Coeficiente Kappa ($\kappa$):} $0.9907$.
+    \item \textbf{$F_1$-Score Macro:} $0.9729$ (una ganancia neta de $+1.61\%$ respecto al árbol individual).
+    \item \textbf{$F_1$-Score Ponderado:} $0.9951$.
+\end{itemize}
+
+En la Figura \ref{fig:cm_rf} se ilustra la matriz de confusión de Random Forest, donde se observa la práctica erradicación de falsos positivos en vegetación sana (1.171 aciertos de 1.194) y vegetación quemada (13.337 aciertos de 13.348).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.72\textwidth]{matriz_confusion_rf.png}
+    \caption{Matriz de confusión obtenida por el ensamble Random Forest (RF) en el conjunto de test.}
+    \label{fig:cm_rf}
+\end{figure}
+
+\subsubsection{Consistencia Espectroscópica en la Importancia de Bandas}
+Al promediar la importancia de características a lo largo de 200 árboles descorrelacionados, Random Forest atenúa el sesgo de partición única y produce un ranking espectral biofísicamente consistente (Figura \ref{fig:importancia_rf}):
+\begin{itemize}
+    \item \textbf{B12 (SWIR-2 -- 2190 nm):} $27.52\%$
+    \item \textbf{B11 (SWIR-1 -- 1610 nm):} $22.11\%$
+    \item \textbf{B08 (NIR -- 842 nm):} $14.72\%$
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.82\textwidth]{importancia_bandas_rf.png}
+    \caption{Importancia de bandas espectrales estimada por el ensamble Random Forest (200 estimadores).}
+    \label{fig:importancia_rf}
+\end{figure}
+
+\noindent \textbf{Interpretación Biofísica Teledetectada:} Las bandas B12, B11 y B08 concentran el \textbf{64.35\%} de la capacidad predictiva del ensamble. Esta convergencia valida cuantitativamente la base matemática del Índice de Área Quemada Normalizado (\textit{Normalized Burn Ratio}, NBR) \cite{key2006landscape}:
+\begin{equation}
+    \text{NBR} = \frac{\rho_{\text{NIR}} - \rho_{\text{SWIR}}}{\rho_{\text{NIR}} + \rho_{\text{SWIR}}} = \frac{\text{B08} - \text{B12}}{\text{B08} + \text{B12}}
+\end{equation}
+El algoritmo de ensamble identificó autónomamente que el contraste entre la alta reflectancia del dosel foliar sano en el NIR y la marcada reflectancia del sustrato calcinado y deshidratado en el SWIR conforma la señal radiométrica más diagnóstica de la catástrofe del Black Summer.
 
 
 \bibliographystyle{plain}
