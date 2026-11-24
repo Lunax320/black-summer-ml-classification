@@ -104,20 +104,9 @@ def evaluar_y_guardar(nombre_modelo: str, modelo_entrenado, y_test, y_pred) -> p
     df_rep.to_csv(os.path.join(carpeta_modelo, f"reporte_clases_{archivo_lower}.tsv"), sep="\t")
 
     # Matriz de confusion
-    ETIQUETAS_CORTAS = {
-        1: "Agua",
-        2: "Urbanización",
-        3: "Pasto",
-        4: "Veg. Boscosa\nSana",
-        5: "Veg. Boscosa\nQuemada",
-        6: "Nubes",
-        7: "Sombras",
-    }
-    labels_visuales = [ETIQUETAS_CORTAS.get(cid, str(cid)) for cid in CLASS_IDS]
-
     cm = confusion_matrix(y_test, y_pred, labels=CLASS_IDS)
     fig, ax = plt.subplots(figsize=(10, 8))
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels_visuales)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=NOMBRES_CLASES)
     disp.plot(cmap="Blues", ax=ax, values_format="d")
 
     plt.setp(ax.get_xticklabels(), rotation=30, ha="right", rotation_mode="anchor", fontsize=10)

@@ -5,22 +5,62 @@ Script para generar las tabulaciones de píxeles (en formato TSV) a partir de:
 
 Archivos generados:
 - AfterProy2_Training_Tabulado.tsv: Píxeles de entrenamiento con coordenadas, valores de las 10 bandas,
-  macroclass_id y macroclass_name.
+  macroclass_id y macroclass_name de la Entrega 3. Usa --desde-tsv para actualizar un TSV existente.
 - Mosaico_Completo_Tabulado.tsv: Todos los píxeles válidos (sin NoData=0) del mosaico con coordenadas
   (row, col, x, y) y valores de las 10 bandas para predicción y reconstrucción del mapa clasificado.
 """
 
+import argparse
 import os
 import struct
 import sqlite3
+import tempfile
 import time
-import xml.etree.ElementTree as ET
 import zipfile
 import numpy as np
 import pandas as pd
 
 # Nombres de las 10 bandas del mosaico Sentinel-2
 BAND_NAMES = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B11", "B12"]
+
+NOMBRES_MACROCLASES = {
+    1: "Agua",
+    2: "Urbanización",
+    4: "Vegetación sana",
+    5: "Vegetación boscosa quemada",
+}
+FUSIONES_MACROCLASES = {3: 4, 6: 2}  # Pasto → Vegetación sana, Nubes → Urbanización
+ID_SOMBRAS = 7
+
+
+def guardar_tsv_entrenamiento(df: pd.DataFrame, output_tsv: str) -> pd.DataFrame:
+    """Aplica las macroclases de la Entrega 3 y guarda el TSV de entrenamiento."""
+    df_train = df.loc[~df["macroclass_id"].isin([ID_SOMBRAS])].copy()
+    ids = df_train["macroclass_id"].replace(FUSIONES_MACROCLASES)
+    nombres = ids.map(NOMBRES_MACROCLASES)
+    if nombres.isna().any():
+        ids_desconocidos = ids[nombres.isna()].unique().tolist()
+        raise ValueError(f"IDs de macroclase desconocidos: {ids_desconocidos}")
+    if df_train.empty:
+        raise ValueError("No quedan píxeles de entrenamiento después de excluir Sombras.")
+
+    df_train["macroclass_id"] = ids.astype(int)
+    df_train["macroclass_name"] = nombres
+
+    # Reemplazar el TSV solo cuando su escritura haya terminado.
+    output_dir = os.path.dirname(os.path.abspath(output_tsv))
+    with tempfile.TemporaryDirectory(dir=output_dir) as temp_dir:
+        temp_tsv = os.path.join(temp_dir, os.path.basename(output_tsv))
+        df_train.to_csv(temp_tsv, sep="\t", index=False, lineterminator="\n")
+        os.replace(temp_tsv, output_tsv)
+
+    print(f"      Archivo generado: {output_tsv}")
+    print(f"      Total píxeles de entrenamiento: {len(df_train):,}")
+    print("      Distribución por macroclase:")
+    for mc_id, count in df_train["macroclass_id"].value_counts().sort_index().items():
+        print(f"        - [{mc_id}] {NOMBRES_MACROCLASES[mc_id]}: {count:,} píxeles")
+
+    return df_train
 
 
 def read_geotiff_metadata(tif_path: str) -> dict:
@@ -134,19 +174,9 @@ def extract_training_data(
     print(f"[1/2] Procesando archivo de entrenamiento: {scpx_path} ...")
 
     with zipfile.ZipFile(scpx_path, "r") as z:
-        xml_bytes = z.read("macroclasses.xml")
         gpkg_bytes = z.read("geometry.gpkg")
 
-    # 1. Leer nombres de macroclases desde macroclasses.xml
-    root = ET.fromstring(xml_bytes.decode("utf-8", errors="replace"))
-    macroclass_map = {}
-    for mc in root.findall("macroclass"):
-        mc_id = int(mc.attrib["id"])
-        mc_name = mc.attrib["name"]
-        macroclass_map[mc_id] = mc_name
-    print(f"      Macroclases encontradas ({len(macroclass_map)}): {macroclass_map}")
-
-    # 2. Leer polígonos ROI desde geometry.gpkg en memoria
+    # Leer polígonos ROI desde geometry.gpkg en memoria
     conn = sqlite3.connect(":memory:")
     conn.deserialize(gpkg_bytes)
     cur = conn.cursor()
@@ -234,18 +264,8 @@ def extract_training_data(
         df_dict[bname] = pixel_values[:, i]
 
     df_dict["macroclass_id"] = all_mc
-    df_dict["macroclass_name"] = [macroclass_map.get(int(m), f"Clase_{m}") for m in all_mc]
-
-    df_train = pd.DataFrame(df_dict)
-    df_train.to_csv(output_tsv, sep="\t", index=False, lineterminator="\n")
-
-    elapsed = time.time() - t0
-    print(f"      Archivo generado: {output_tsv}")
-    print(f"      Total píxeles de entrenamiento: {len(df_train):,} ({elapsed:.2f} s)")
-    print("      Distribución por macroclase:")
-    for (mc_id, mc_name), count in df_train.groupby(["macroclass_id", "macroclass_name"]).size().items():
-        print(f"        - [{mc_id}] {mc_name}: {count:,} píxeles")
-
+    df_train = guardar_tsv_entrenamiento(pd.DataFrame(df_dict), output_tsv)
+    print(f"      Tiempo de extracción y tabulación: {time.time() - t0:.2f} s")
     return df_train
 
 
@@ -325,11 +345,22 @@ def extract_full_mosaic(
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Genera las tabulaciones de la Entrega 3.")
+    parser.add_argument(
+        "--desde-tsv",
+        action="store_true",
+        help="Actualiza AfterProy2_Training_Tabulado.tsv usando píxeles existentes.",
+    )
+    args = parser.parse_args()
+
     base_dir = os.path.dirname(os.path.abspath(__file__))
+    train_tsv_path = os.path.join(base_dir, "AfterProy2_Training_Tabulado.tsv")
+    if args.desde_tsv:
+        guardar_tsv_entrenamiento(pd.read_csv(train_tsv_path, sep="\t"), train_tsv_path)
+        return
+
     tif_path = os.path.join(base_dir, "Mosaico_Completo.tif")
     scpx_path = os.path.join(base_dir, "AfterProy2.scpx")
-
-    train_tsv_path = os.path.join(base_dir, "AfterProy2_Training_Tabulado.tsv")
     mosaic_tsv_path = os.path.join(base_dir, "Mosaico_Completo_Tabulado.tsv")
 
     meta = read_geotiff_metadata(tif_path)

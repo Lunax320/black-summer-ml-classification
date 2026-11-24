@@ -1,2 +1,0 @@
-Modelo	Overall_Accuracy	Kappa	Precision_Macro	Recall_Macro	F1_Macro	F1_Weighted
-SVM	0.9962	0.9928	0.9774	0.9803	0.9788	0.9962
