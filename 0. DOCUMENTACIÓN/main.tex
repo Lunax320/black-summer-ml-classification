@@ -57,7 +57,7 @@ Dentro del estado de Nueva Gales del Sur (NSW), uno de los eventos individuales 
     \label{fig:impacto_terreno_gospers}
 \end{figure}
 
-En este contexto, la teledetección espacial y los Sistemas de Información Geográfica (SIG) constituyen herramientas indispensables para cuantificar y caracterizar espacialmente las perturbaciones por fuego sobre los ecosistemas forestales \cite{lillesand2015remote}. Con esto en mente, el propósito fundamental de este proyecto consiste en evaluar la severidad de la quema y el grado de afectación en el dosel vegetal del Parque Nacional Blue Mountains (NSW) a raíz del megaincendio de Gospers Mountain. Mediante el procesamiento digital de imágenes satelitales Sentinel-2 calibradas a nivel de reflectancia de fondo de atmósfera (BOA), el estudio se enfoca de manera exclusiva en la dinámica radiométrica del fuego y las afectaciones que ocasiono.
+En este contexto, la teledetección espacial y los Sistemas de Información Geográfica (SIG) constituyen herramientas indispensables para cuantificar y caracterizar espacialmente las perturbaciones por fuego sobre los ecosistemas forestales \cite{lillesand2015remote}. Con esto en mente, el propósito fundamental de este proyecto consiste en clasificar de forma supervisada las coberturas terrestres del Parque Nacional Blue Mountains (NSW) en la escena posterior al megaincendio de Gospers Mountain, y determinar cuál de cinco arquitecturas de \textit{Machine Learning} (Regresión Logística, Árboles de Decisión, Máquinas de Soporte Vectorial, Redes Neuronales Artificiales y K-Vecinos Más Cercanos) distingue mejor las coberturas a partir de su firma espectral. Para ello se emplea una imagen Sentinel-2 calibrada a nivel de reflectancia de fondo de atmósfera (BOA), de la cual se extraen las firmas espectrales de píxeles pertenecientes a siete macroclases (agua, urbanización, pasto, vegetación boscosa sana, vegetación boscosa quemada, nubes y sombras), con las que se entrena y evalúa cada modelo.
 
 \section{Región de Interés (ROI) y Caso de Estudio}
 El área de estudio se enfoca sobre el sector central y norte del Parque Nacional Blue Mountains, como se muestra en la Figura \ref{fig:parque_contexto}, colindante con el sector de Gospers Mountain y el cañón del río Grose en Nueva Gales del Sur. La región se caracteriza por mesetas elevadas de arenisca de Hawkesbury, profundos valles labrados y bosques densos de eucalipto seco y húmedo (\textit{Eucalyptus} spp.) con una carga de combustible excepcionalmente inflamable bajo temperaturas superiores a 40~$^\circ$C \cite{hamilton2020ecological}.
@@ -73,13 +73,10 @@ Dado que el parque cubre un área extensa y de geometría irregular, se decidió
 
 \section{Fase 1: Definición del Problema y Adquisición de Datos}
 
-\subsection{Criterios de Selección Temporal ($t_1$ y $t_2$)}
-Para este análisis multitemporal de detección de cambios por perturbación de fuego sea estadísticamente válido y físicamente comparable, es necesario establecer dos ventanas temporales:
-\begin{enumerate}
-    \item \textbf{Línea Base Pre-incendio ($t_1$ -- 27 de septiembre de 2019):} Se descartó el mes de octubre ya que, aunque el foco puntual de Gospers Mountain inició el 26 de octubre, a mediados de mes la región circundante de NSW ya presentaba fuegos tempranos y aerosoles atmosféricos dispersos que alteran la respuesta espectral en el visible y NIR \cite{vanoldenborgh2021pathways}. El 27 de septiembre es una línea base de referencia correspondiente a la primavera austral, con el dosel vegetal en condición de vigor no calcinado y la atmósfera enteramente despejada de nubes y humo.
-    
-    \item \textbf{Condición Post-incendio ($t_2$ -- 19 de febrero de 2020):} Corresponde a la ventana inmediata posterior a la extinción del megaincendio. A inicios y mediados de febrero de 2020, precipitaciones torrenciales de gran escala apagaron definitivamente los frentes residuales y lavaron las partículas de humo de la columna atmosférica. Esta fecha permite la visualización directa y descubierta del carbón, las cenizas y el dosel colapsado.
-\end{enumerate}
+\subsection{Criterio de Selección Temporal}
+Para este análisis se trabajó con una única escena Sentinel-2, correspondiente a la condición posterior al incendio (19 de febrero de 2020). Esta fecha corresponde a la ventana inmediata posterior a la extinción del megaincendio: a inicios y mediados de febrero de 2020, precipitaciones torrenciales de gran escala apagaron definitivamente los frentes residuales y lavaron las partículas de humo de la columna atmosférica. Esto permite la visualización directa y descubierta del carbón, las cenizas y el dosel colapsado.
+
+Al tratarse de una clasificación supervisada de una sola fecha, no se requiere una imagen previa al incendio: las coberturas de interés, incluida la vegetación boscosa quemada, se identifican directamente sobre esta escena.
 
 \subsection{Plataforma y Ficha Técnica de las Escenas Satelitales}
 Las imágenes fueron adquiridas a través del portal de acceso abierto \textit{Copernicus Data Space Ecosystem} (CDSE) de la Agencia Espacial Europea (ESA). A diferencia de misiones de resolución media como Landsat (30 m), la misión \textbf{Sentinel-2 (MSI)} ofrece bandas con tamaño de celda de 10 m y 20 m, permitiendo un nivel de detalle cartográfico superior.
@@ -96,17 +93,17 @@ Las imágenes fueron adquiridas a través del portal de acceso abierto \textit{C
         Plataforma de Descarga & Copernicus Data (\url{https://dataspace.copernicus.eu/}) \\
         Nivel de Procesamiento & Level-2A (BOA - \textit{Bottom-Of-Atmosphere Surface Reflectance}) \\
         Teselas de la Grilla MGRS & \textbf{T56HKH} (sector central/sur) y \textbf{T56HKJ} (sector septentrional) \\
-        Fecha Pre-incendio ($t_1$) & 27 de septiembre de 2019 \\
-        Fecha Post-incendio ($t_2$) & 19 de febrero de 2020 \\
+        Fecha de Adquisición (post-incendio) & 19 de febrero de 2020 \\
         Proyección de Trabajo & GDA2020 / MGA zone 56 (EPSG:7856) \\
-        Bandas Utilizadas & B02 (Azul), B03 (Verde), B04 (Rojo), B08 (NIR) y B12 (SWIR-2) \\
+        Bandas Utilizadas & 10 bandas: B01, B02, B03, B04, B05, B06, B07, B8A, B11 y B12 \\
+        Resolución Espacial & Unificada a 20 m (remuestreo) \\
         Cobertura Nubosa en ROI & Cobertura marginal evaluada con capa de clasificación de escena \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \subsection{Necesidad Metodológica de Cobertura Multi-Tesela}
-Al contrastar el área geográfica del parque Blue Mountains con la partición en teselas de la grilla, se observó que esta no puede ser cubierta por una única escena, como se ve en la Figura \ref{fig:seleccion_poligono_general}. Por lo tanto, se deben tomar dos divisiones, presentadas en la Figura \ref{fig:teselas_compartidas}, de esta formala reserva queda dividida en la frontera entre la tesela inferior \textbf{T56HKH} y la tesela superior \textbf{T56HKJ}.
+Al contrastar el área geográfica del parque Blue Mountains con la partición en teselas de la grilla, se observó que esta no puede ser cubierta por una única escena, como se ve en la Figura \ref{fig:seleccion_poligono_general}. Por lo tanto, se deben tomar dos divisiones, presentadas en la Figura \ref{fig:teselas_compartidas}, de esta forma la reserva queda dividida en la frontera entre la tesela inferior \textbf{T56HKH} y la tesela superior \textbf{T56HKJ}.
 
 \begin{figure}[H]
     \centering
@@ -122,7 +119,7 @@ Al contrastar el área geográfica del parque Blue Mountains con la partición e
     \label{fig:teselas_compartidas}
 \end{figure}
 
-Por consiguiente, en el panel lateral de búsqueda de Copernicus se seleccionaron explícitamente ambas escenas (Figuras \ref{fig:panel_teselas} y \ref{fig:especificacion_teselas}) para cada una de las dos fechas evaluadas, descargando los paquetes completos en formato SAFE Nivel-2A.
+Por consiguiente, en el panel lateral de búsqueda de Copernicus se seleccionaron explícitamente ambas escenas (Figuras \ref{fig:panel_teselas} y \ref{fig:especificacion_teselas}) para la fecha evaluada, descargando los paquetes completos en formato SAFE Nivel-2A.
 
 \begin{figure}[H]
     \centering
@@ -138,133 +135,6 @@ Por consiguiente, en el panel lateral de búsqueda de Copernicus se seleccionaro
         \caption{Inspección de metadatos de las teselas T56HKH y T56HKJ.}
         \label{fig:especificacion_teselas}
     \end{minipage}
-\end{figure}
-
-\section{Fase 2: Preprocesamiento y Rásters Resultantes}
-Para garantizar que las imágenes de $t_1$ y $t_2$ sean completamente funcionales para el posterior entrenamiento y análisis de indices espectrales, se ejecutó la siguiente secuencia de pasos.
-
-\subsection{Carga de Bandas Espectrales y Corrección Atmosférica}
-Las bandas espectrales seleccionadas para cada fecha fueron cargadas en el panel de capas de QGIS, ver Figura \ref{fig:capas_qgis}, incluyendo Azul (B02), Verde (B03), Rojo (B04), Infrarrojo Cercano (B08) e Infrarrojo de Onda Corta (B12).
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{5 Capas en QGIS.jpg}
-    \caption{Carga de las bandas individuales de Sentinel-2 en QGIS.}
-    \label{fig:capas_qgis}
-\end{figure}
-
-\subsection{Ensamblaje de Mosaicos Espaciales por Banda}
-Dado que el área del parque se distribuye entre T56HKH y T56HKJ, el primer geoprocesamiento consistió en unir cada par de teselas para una misma banda y fecha. Para ello se recurrió a la herramienta Combinar, accesible en el menú \texttt{Ráster $\rightarrow$ Miscelánea $\rightarrow$ Combinar}, como se observa en la Figura \ref{fig:opcion_combinar}, donde se seleccionaron las teselas que iban a ser fusionadas (Figura \ref{fig:seleccion_mosaico}).
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{6. Opcion Combinar para Mosaicos.jpg}
-    \caption{Ubicación de la herramienta Combinar en QGIS.}
-    \label{fig:opcion_combinar}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{7. Seleccion de capas para Mosaico.jpg}
-    \caption{Selección de teselas contiguas de una misma banda espectral.}
-    \label{fig:seleccion_mosaico}
-\end{figure}
-
-El proceso se ejecutó individualmente agrupando las dos teselas correspondientes a B02, B03, B04, B08 y B12, tanto para la fecha previa ($t_1$) como para la posterior ($t_2$). Como resultado se obtuvo un conjunto de mosaicos continuos sobre el área del parque, tal como ilustra la Figura \ref{fig:mosaicos_creados}.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{8. Mosaicos Creados.jpg}
-    \caption{Mosaicos continuos generados para cada banda espectral en el panel de capas.}
-    \label{fig:mosaicos_creados}
-\end{figure}
-
-\subsection{Reproyección al Sistema Oficial Australiano (EPSG:7856)}
-Para este caso, se adoptó el sistema de referencia oficial vigente para el sureste australiano: \textbf{GDA2020 / MGA zone 56 (EPSG:7856)} (Figura \ref{fig:uso_epsg}). Los mosaicos generados fueron reproyectados a este estándar cartográfico métrico transversal de Mercator (Figura \ref{fig:proyeccion_mosaicos}).
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{9. Uso de ESPG7856.jpg}
-    \caption{Configuración del sistema proyectado GDA2020 / MGA zone 56.}
-    \label{fig:uso_epsg}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{10. Proyeccion de mosaicos a ESPG7856.jpg}
-    \caption{Reproyección de las capas ráster al sistema métrico oficial.}
-    \label{fig:proyeccion_mosaicos}
-\end{figure}
-
-\subsection{Delimitación Vectorial y Recorte por Capa de Máscara (ROI)}
-Con el fin de acotar el dominio computacional y concentrar el análisis sobre Blue Mountains, se creó una nueva capa vectorial de tipo polígono en formato GeoPackage, utilizando la herramienta de creación de capas y conmutación de edición de QGIS, ver Figura \ref{fig:creacion_roi}. 
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{13. Opcion para crear poligono ROI.jpg}
-    \caption{Creación del archivo vectorial GeoPackage para la ROI.}
-    \label{fig:creacion_roi}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\textwidth]{14. Area de recorte sobre mosaico.jpg}
-    \caption{Superposición del polígono de recorte sobre el mosaico continuo.}
-    \label{fig:area_recorte_roi}
-\end{figure}
-
-El polígono fue trazado para abarcar toda la zona del parque, como se observar en la Figura \ref{fig:area_recorte_roi}. Posteriormente, se utilizó la herramienta cortar ráster por capa de máscara (\texttt{Ráster $\rightarrow$ Extracción $\rightarrow$ Cortar ráster por capa de máscara}), delimitando cada uno de los mosaicos espectrales a la geometría exacta del vector (Figura \ref{fig:recorte_aplicado}).
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\textwidth]{15. Recorte aplicado sobre un mosaico.jpg}
-    \caption{Ejecución del recorte espacial utilizando la máscara vectorial.}
-    \label{fig:recorte_aplicado}
-\end{figure}
-
-\subsection{Apilado Multibanda}
-Una vez recortados los mosaicos individuales de cada banda (B02, B03, B04, B08 y B12), se procedió a su apilado en un único ráster mediante la herramienta de combinar ráster, como se ilustra en la Figura \ref{fig:union_mosaicos}.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{17. Union de Mosaicos para raster general.jpg}
-    \caption{Integración de las 5 bandas espectrales en un ráster virtual continuo.}
-    \label{fig:union_mosaicos}
-\end{figure}
-
-El orden espectral estructurado en la pila multicapa resultante fue:
-\begin{itemize}
-    \item \texttt{Banda 1 (@1):} B02 (Azul -- 10 m)
-    \item \texttt{Banda 2 (@2):} B03 (Verde -- 10 m)
-    \item \texttt{Banda 3 (@3):} B04 (Rojo -- 10 m)
-    \item \texttt{Banda 4 (@4):} B08 (Infrarrojo Cercano NIR -- 10 m)
-    \item \texttt{Banda 5 (@5):} B12 (Infrarrojo de Onda Corta SWIR-2 -- 10 m)
-\end{itemize}
-
-\subsection{Gestión de Valores Nulos (\texttt{NoData})}
- Debido a la inclinación geométrica del polígono de corte, el cuadro delimitador rectangular de la matriz ráster rellena automáticamente el espacio sobrante con píxeles de valor 0, creando franjas negras, como se ve en la Figura \ref{fig:raster_nulos}. Estos píxeles de valor 0 alteran los contrastes de visualización y falsean el cálculo de índices espectrales.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\textwidth]{18. Resultado de Raster general con nulos.jpg}
-    \caption{Ráster con bordes negros.}
-    \label{fig:raster_nulos}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.75\textwidth]{19. Eliminacion de borde negro-nulos con traductor raster.jpg}
-    \caption{Configuración de la herramienta Traducir asignando NoData = 0.}
-    \label{fig:traductor_nodata}
-\end{figure}
-
-Para corregir este problema, se empleó la herramienta Traducir ráster (\texttt{Ráster $\rightarrow$ Conversión $\rightarrow$ Traducir}), estableciendo explícitamente el parámetro \textbf{Assign a specified NoData value to output bands = 0}, como se observa en la Figura \ref{fig:traductor_nodata}. Esta operación transforma de manera estándar todas las celdas nulas exteriores en valores \texttt{NaN} transparentes, conservando únicamente la información del polígono delimitador (Figura \ref{fig:raster_limpio}).
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\textwidth]{20. Capa Raster Limpia-sin nulos.jpg}
-    \caption{Ráster multibanda libre de bordes oscuros.}
-    \label{fig:raster_limpio}
 \end{figure}
 
 \section{Fase 2: Preprocesamiento Tabular y Entrenamiento de Modelos de Machine Learning}
@@ -303,7 +173,63 @@ Para asegurar un entorno reproducible y libre de sesgos entre los distintos mode
         \bottomrule
     \end{tabular}
 \end{table}
+\subsection{Regresión Logística (Logistic Regression - LR)}
+La Regresión Logística multiclase se utilizó como modelo base (\textit{baseline}) de la comparación. Es un clasificador lineal: combina las 10 bandas espectrales estandarizadas mediante una suma ponderada y transforma el resultado en una probabilidad para cada una de las siete macroclases (función \textit{softmax}), asignando cada píxel a la clase de mayor probabilidad. Al ser lineal, genera fronteras de decisión planas en el espacio espectral, por lo que sirve como punto de referencia para medir cuánto aportan los modelos no lineales.
 
+\subsubsection{Optimización de Hiperparámetros (HPO)}
+El modelo se implementó con \texttt{LogisticRegression} de \texttt{scikit-learn}, entrenado sobre los datos estandarizados (\texttt{X\_train.csv}). Se ejecutó una búsqueda en cuadrícula (\texttt{GridSearchCV}) con validación cruzada estratificada de 3 pliegues, maximizando el $F_1\text{-score}$ macro sobre \textbf{32 combinaciones} (96 ajustes totales):
+
+\begin{itemize}
+    \item \textbf{Inverso de la regularización $L_2$ (\texttt{C}):} $[0{,}01;\ 0{,}1;\ 1;\ 10;\ 100;\ 1000;\ 10000;\ 100000]$. Valores pequeños implican una regularización más fuerte.
+    \item \textbf{Algoritmo de optimización (\texttt{solver}):} \texttt{'lbfgs'} y \texttt{'newton-cg'}.
+    \item \textbf{Ponderación de clases (\texttt{class\_weight}):} \texttt{None} vs. \texttt{'balanced'}.
+\end{itemize}
+
+No se incluyeron las penalizaciones $L_1$ ni \textit{ElasticNet} (solver \texttt{saga}), debido al alto costo computacional con aproximadamente 50.000 píxeles de entrenamiento.
+
+La configuración óptima alcanzó un puntaje medio de validación cruzada de $F_1\text{-macro} = 0{,}9403 \pm 0{,}0015$, con \texttt{C = 1000}, \texttt{solver = 'newton-cg'} y \texttt{class\_weight = None}. Se observó que una regularización débil (\texttt{C} alto) mejora el desempeño, lo que indica que el modelo necesita libertad para ajustar los coeficientes de las bandas. Además, la ponderación \texttt{'balanced'} redujo el $F_1$ (mejor caso: $0{,}9260$), por lo que corregir el desbalanceo de clases no resultó beneficioso para este modelo.
+
+\subsubsection{Evaluación del Rendimiento en el Conjunto de Test}
+Al evaluar el modelo óptimo sobre el 30\% de datos independientes ($n =$ 21.241 píxeles), se obtuvo:
+\begin{itemize}
+    \item \textbf{Overall Accuracy (OA):} $0{,}9902$ ($99{,}02\%$, equivalente a 21.032 píxeles clasificados correctamente).
+    \item \textbf{Coeficiente Kappa de Cohen ($\kappa$):} $0{,}9815$.
+    \item \textbf{Precisión Macro:} $0{,}9391$ | \textbf{Recall Macro:} $0{,}9305$ | \textbf{$F_1$-Score Macro:} $0{,}9347$.
+    \item \textbf{$F_1$-Score Ponderado:} $0{,}9901$.
+\end{itemize}
+
+En la Tabla \ref{tab:reporte_lr} se detalla el comportamiento por macroclase en el conjunto de prueba.
+
+\begin{table}[H]
+    \centering
+    \caption{Métricas detalladas por macroclase para el modelo Logistic Regression (LR) en el conjunto de test.}
+    \label{tab:reporte_lr}
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        \textbf{Macroclase} & \textbf{Precisión} & \textbf{Recall} & \textbf{$F_1$-Score} & \textbf{Soporte (Píxeles)} \\
+        \midrule
+        Agua & 0,9989 & 0,9991 & 0,9990 & 5.543 \\
+        Urbanización & 0,8232 & 0,8207 & 0,8219 & 329 \\
+        Pasto & 0,9802 & 0,9612 & 0,9706 & 309 \\
+        Veg. Boscosa Sana & 0,9525 & 0,9749 & 0,9636 & 1.194 \\
+        Veg. Boscosa Quemada & 0,9981 & 0,9973 & 0,9977 & 13.348 \\
+        Nubes & 0,8824 & 0,8661 & 0,8741 & 433 \\
+        Sombras & 0,9383 & 0,8941 & 0,9157 & 85 \\
+        \midrule
+        \textbf{Promedio Macro} & \textbf{0,9391} & \textbf{0,9305} & \textbf{0,9347} & \textbf{21.241} \\
+        \textbf{Promedio Ponderado} & \textbf{0,9902} & \textbf{0,9902} & \textbf{0,9901} & \textbf{21.241} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Como muestra la matriz de confusión (Figura \ref{fig:cm_lr}), el modelo clasifica casi perfectamente las clases dominantes: el agua ($F_1 = 0{,}9990$) y la vegetación boscosa quemada ($F_1 = 0{,}9977$; 13.312 de 13.348 píxeles). Sus errores se concentran en dos pares de clases con firmas espectrales parecidas: \textbf{Urbanización y Nubes} (47 píxeles urbanos clasificados como nubes y 44 nubes clasificadas como urbanos) y \textbf{Vegetación Sana y Quemada} (24 píxeles quemados clasificados como sanos y 15 en sentido inverso). Estas confusiones explican por qué el $F_1$ macro ($0{,}9347$) queda por debajo del resto de modelos: al ser lineal, la regresión logística no logra separar bien las clases minoritarias que se solapan espectralmente, lo que justifica el uso de modelos no lineales como SVM o ANN.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.72\textwidth]{matriz_confusion_lr.jpg}
+    \caption{Matriz de confusión del modelo Logistic Regression (LR) sobre el conjunto de test (21.241 píxeles).}
+    \label{fig:cm_lr}
+\end{figure}
 \subsection{Árboles de Decisión (Decision Trees - DT)}
 Los árboles de decisión representan modelos lógicos de caja blanca que dividen de forma recursiva el espacio de características multidimensional en hiper-rectángulos ortogonales mediante umbrales espectrales óptimos \cite{breiman1984classification}.
 
@@ -441,6 +367,62 @@ Al promediar la importancia de características a lo largo de 200 árboles desco
 \end{equation}
 El algoritmo de ensamble identificó autónomamente que el contraste entre la alta reflectancia del dosel foliar sano en el NIR y la marcada reflectancia del sustrato calcinado y deshidratado en el SWIR conforma la señal radiométrica más diagnóstica de la catástrofe del Black Summer.
 
+\subsection{Máquinas de Vectores de Soporte (Support Vector Machines - SVM)}
+Las Máquinas de Vectores de Soporte (\textit{Support Vector Machines}, SVM) constituyen clasificadores de margen máximo que buscan construir hiperplanos óptimos de separación entre clases maximizando la distancia geométrica hacia las observaciones más cercanas o vectores de soporte. Mediante la aplicación del truco del núcleo (\textit{kernel trick}), el algoritmo proyecta implícitamente las 10 bandas espectrales estandarizadas hacia espacios de características de dimensión superior, permitiendo resolver fronteras radiométricas altamente no lineales con una sólida capacidad de generalización sobre coberturas complejas.
+
+\subsubsection{Optimización de Hiperparámetros (HPO)}
+El entrenamiento se implementó mediante el estimador \texttt{SVC} de \texttt{scikit-learn} sobre el conjunto estandarizado (\texttt{X\_train.csv}), utilizando una estrategia multiclase uno-contra-uno (\textit{one-vs-one}) y memoria caché ampliada (\texttt{cache\_size = 1000}). Se ejecutó una búsqueda estructurada en cuadrícula (\texttt{GridSearchCV}) con validación cruzada estratificada de 3 pliegues (\textit{3-fold Stratified CV}), maximizando el $F_1\text{-score}$ macro sobre \textbf{64 combinaciones} (192 ajustes totales) en un tiempo de cómputo de 13,24 minutos. La malla se organizó por familias de función de núcleo para evitar combinaciones redundantes de parámetros inactivos:
+
+\begin{itemize}
+    \item \textbf{Núcleo de Base Radial Gaussiana (\texttt{kernel = 'rbf'}):} Parámetro de penalización \texttt{C} $\in [0{,}1;\ 1;\ 10;\ 100]$, coeficiente de ancho de banda \texttt{gamma} $\in [\texttt{'scale'},\ \texttt{'auto'},\ 0{,}01,\ 0{,}1]$ y ponderación de clases \texttt{class\_weight} $\in [\texttt{None},\ \texttt{'balanced'}]$ (32 combinaciones).
+    \item \textbf{Núcleo Polinomial (\texttt{kernel = 'poly'}):} Penalización \texttt{C} $\in [0{,}1;\ 1;\ 10]$, grado del polinomio \texttt{degree} $\in [2,\ 3]$, coeficiente \texttt{gamma} $\in [\texttt{'scale'},\ \texttt{'auto'}]$ y \texttt{class\_weight} $\in [\texttt{None},\ \texttt{'balanced'}]$ (24 combinaciones).
+    \item \textbf{Núcleo Lineal (\texttt{kernel = 'linear'}):} Penalización \texttt{C} $\in [0{,}1;\ 1;\ 10;\ 100]$ y \texttt{class\_weight} $\in [\texttt{None},\ \texttt{'balanced'}]$ (8 combinaciones).
+\end{itemize}
+
+La configuración óptima identificada alcanzó un puntaje medio de validación cruzada de $F_1\text{-macro} = 0{,}9781 \pm 0{,}0029$, correspondiendo al núcleo gaussiano (\texttt{kernel = 'rbf'}) con penalización \texttt{C = 100}, coeficiente adaptativo \texttt{gamma = 'scale'} y sin reponderación de clases (\texttt{class\_weight = None}). El análisis del historial de búsqueda evidenció la superioridad de las fronteras radiales frente al mejor clasificador lineal ($F_1\text{-macro} = 0{,}9565$ con \texttt{C = 100}) y polinomial ($F_1\text{-macro} = 0{,}9409$ con \texttt{C = 10} y \texttt{degree = 3}). Asimismo, un valor elevado de \texttt{C} redujo la holgura de clasificación en las zonas de transición espectral, mientras que \texttt{class\_weight = None} superó ligeramente al esquema \texttt{'balanced'} ($0{,}9781$ frente a $0{,}9747$), evitando la sobrepredicción de falsos positivos en las clases minoritarias.
+
+\subsubsection{Evaluación del Rendimiento en el Conjunto de Test}
+Al evaluar el modelo SVM óptimo sobre el 30\% de datos independientes ($n =$ 21.241 píxeles), se obtuvieron las siguientes métricas globales:
+\begin{itemize}
+    \item \textbf{Overall Accuracy (OA):} $0{,}9962$ ($99{,}62\%$, equivalente a 21.160 píxeles clasificados correctamente).
+    \item \textbf{Coeficiente Kappa de Cohen ($\kappa$):} $0{,}9928$, reflejando una concordancia casi perfecta entre las predicciones y la verdad de terreno.
+    \item \textbf{Precisión Macro:} $0{,}9774$ | \textbf{Recall Macro:} $0{,}9803$ | \textbf{$F_1$-Score Macro:} $0{,}9788$.
+    \item \textbf{$F_1$-Score Ponderado:} $0{,}9962$.
+\end{itemize}
+
+En la Tabla \ref{tab:reporte_svm} se presenta el desglose de métricas por macroclase sobre el conjunto de prueba.
+
+\begin{table}[H]
+    \centering
+    \caption{Métricas detalladas por macroclase para el modelo Support Vector Machine (SVM) en el conjunto de test.}
+    \label{tab:reporte_svm}
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        \textbf{Macroclase} & \textbf{Precisión} & \textbf{Recall} & \textbf{$F_1$-Score} & \textbf{Soporte (Píxeles)} \\
+        \midrule
+        Agua & 0,9998 & 0,9993 & 0,9995 & 5.543 \\
+        Urbanización & 0,9222 & 0,9362 & 0,9291 & 329 \\
+        Pasto & 0,9871 & 0,9935 & 0,9903 & 309 \\
+        Veg. Boscosa Sana & 0,9832 & 0,9832 & 0,9832 & 1.194 \\
+        Veg. Boscosa Quemada & 0,9994 & 0,9987 & 0,9991 & 13.348 \\
+        Nubes & 0,9499 & 0,9630 & 0,9564 & 433 \\
+        Sombras & 1,0000 & 0,9882 & 0,9941 & 85 \\
+        \midrule
+        \textbf{Promedio Macro} & \textbf{0,9774} & \textbf{0,9803} & \textbf{0,9788} & \textbf{21.241} \\
+        \textbf{Promedio Ponderado} & \textbf{0,9962} & \textbf{0,9962} & \textbf{0,9962} & \textbf{21.241} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Como se observa en la matriz de confusión (Figura \ref{fig:cm_svm}), el clasificador SVM con núcleo RBF alcanzó una separación sobresaliente tanto en las coberturas mayoritarias como en las clases con menor representatividad muestral. El modelo identificó correctamente 5.539 de 5.543 píxeles de agua ($99{,}93\%$, $F_1 = 0{,}9995$), 13.331 de 13.348 píxeles de vegetación boscosa quemada ($99{,}87\%$, $F_1 = 0{,}9991$), 307 de 309 píxeles de pasto ($99{,}35\%$, $F_1 = 0{,}9903$) y logró una precisión del \textbf{100\% en sombras} (84 de 85 píxeles recuperados sin falsos positivos, $F_1 = 0{,}9941$). Asimismo, logró la mejor discriminación registrada en el par espectralmente más complejo (\textbf{Urbanización y Nubes}), elevando sus $F_1\text{-score}$ a $0{,}9291$ y $0{,}9564$ respectivamente y reduciendo las confusiones cruzadas a solo 19 píxeles urbanos asignados a nubes y 15 píxeles de nubes asignados a urbanización.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.72\textwidth]{matriz_confusion_svm.jpg}
+    \caption{Matriz de confusión del modelo Support Vector Machine (SVM) sobre el conjunto de test (21.241 píxeles).}
+    \label{fig:cm_svm}
+\end{figure}
+
 \subsection{Redes Neuronales Artificiales (Artificial Neural Networks - ANN)}
 Las Redes Neuronales Artificiales basadas en el Perceptrón Multicapa (\textit{Multi-Layer Perceptron}, MLP) constituyen aproximadores universales capaces de modelar fronteras de decisión altamente no lineales en espacios espectrales de alta dimensionalidad \cite{rumelhart1986learning}. A diferencia de los modelos basados en particiones ortogonales, la arquitectura neuronal proyecta las 10 bandas espectrales estandarizadas a través de capas ocultas densamente conectadas, capturando interacciones radiométricas complejas entre el visible (VIS), red edge y el SWIR.
 
@@ -454,10 +436,10 @@ El entrenamiento se implementó mediante \texttt{MLPClassifier} utilizando el op
     \item \textbf{Tasa de aprendizaje inicial (\texttt{learning\_rate\_init}):} $[0{,}001;\ 0{,}005]$.
 \end{itemize}
 
-La configuración óptima identificada alcanzó un puntaje medio de validación cruzada de $F_1\text{-macro} = 0{,}9743 \pm 0{,}0019$, correspondiendo a una arquitectura profunda de dos capas ocultas con \textbf{128 y 64 neuronas} (\texttt{hidden\_layer\_sizes = (128, 64)}), función de activación tangente hiperbólica (\texttt{activation = 'tanh'}), regularización \texttt{alpha = 0.001} y tasa de aprendizaje inicial learning\_rate\_init = 0.005. El uso de \texttt{tanh} favoreció la estabilización de gradientes sobre las variables estandarizadas centradas en cero, permitiendo discriminar con precisión las transiciones espectrales sutiles entre coberturas minoritarias.
+La configuración óptima identificada alcanzó un puntaje medio de validación cruzada de $F_1\text{-macro} = 0{,}9743 \pm 0{,}0019$, correspondiendo a una arquitectura profunda de dos capas ocultas con \textbf{128 y 64 neuronas} (\texttt{hidden\_layer\_sizes = (128, 64)}), función de activación tangente hiperbólica (\texttt{activation = 'tanh'}), regularización \texttt{alpha = 0.001} y tasa de aprendizaje inicial \texttt{learning\_rate\_init = 0.005}. El uso de \texttt{tanh} favoreció la estabilización de gradientes sobre las variables estandarizadas centradas en cero, permitiendo discriminar con precisión las transiciones espectrales sutiles entre coberturas minoritarias.
 
 \subsubsection{Evaluación del Rendimiento en el Conjunto de Test}
-Al evaluar la red neuronal óptima sobre el 30\% de datos independientes ($n = 21.241$ píxeles), el modelo obtuvo el desempeño global más alto registrado hasta el momento:
+Al evaluar la red neuronal óptima sobre el 30\% de datos independientes ($n =$ 21.241 píxeles), el modelo obtuvo un desempeño global sobresaliente:
 \begin{itemize}
     \item \textbf{Overall Accuracy (OA):} $0{,}9958$ ($99{,}58\%$, equivalente a 21.152 píxeles clasificados correctamente).
     \item \textbf{Coeficiente Kappa de Cohen ($\kappa$):} $0{,}9921$, confirmando una concordancia casi perfecta descartando el azar.
@@ -498,6 +480,100 @@ Como evidencia la matriz de confusión (Figura \ref{fig:cm_ann}), la red neurona
     \label{fig:cm_ann}
 \end{figure}
 
+\subsection{K-Vecinos Más Cercanos (K-Nearest Neighbors - KNN)}
+El algoritmo de K-Vecinos Más Cercanos es un método no paramétrico basado en instancias: no aprende una función explícita durante el entrenamiento, sino que almacena los píxeles de entrenamiento y clasifica cada nuevo píxel según la clase mayoritaria entre sus $k$ vecinos más próximos en el espacio espectral \cite{cover1967nearest}. Dado que la cercanía se mide mediante una distancia entre las 10 bandas, el modelo es sensible a la escala de las variables, por lo que se entrenó sobre los datos estandarizados (\texttt{X\_train.csv}), evitando que las bandas con mayores valores de reflectancia dominaran el cálculo de la distancia.
+
+\subsubsection{Optimización de Hiperparámetros (HPO)}
+El modelo se implementó con \texttt{KNeighborsClassifier} de \texttt{scikit-learn} \cite{pedregosa2011scikit}. Se ejecutó una búsqueda en cuadrícula (\texttt{GridSearchCV}) con validación cruzada estratificada de 3 pliegues, maximizando el $F_1\text{-score}$ macro sobre \textbf{54 combinaciones} (162 ajustes totales) en un tiempo de cómputo de 2,24 minutos:
+
+\begin{itemize}
+    \item \textbf{Número de vecinos (\texttt{n\_neighbors}):} $[1, 3, 5, 7, 9, 11, 15, 21, 31]$. Valores pequeños producen fronteras más flexibles; valores grandes suavizan la decisión.
+    \item \textbf{Ponderación del voto (\texttt{weights}):} \texttt{'uniform'} (todos los vecinos pesan igual) vs. \texttt{'distance'} (los vecinos más cercanos pesan más).
+    \item \textbf{Parámetro de la distancia de Minkowski (\texttt{p}):} $[1, 2, 3]$, correspondientes a las distancias Manhattan, Euclidiana y Minkowski de orden 3.
+\end{itemize}
+
+La configuración óptima alcanzó un puntaje medio de validación cruzada de $F_1\text{-macro} = 0{,}9684 \pm 0{,}0029$, con \texttt{n\_neighbors = 1}, \texttt{p = 3} y \texttt{weights = 'uniform'}. Con un solo vecino la ponderación por distancia no tiene efecto, por lo que ambas opciones obtuvieron el mismo puntaje. Se observó que el desempeño disminuye de forma sostenida al aumentar $k$: el mejor $F_1$ macro por valor de $k$ pasó de $0{,}9684$ ($k = 1$) a $0{,}9657$ ($k = 3$ y $k = 5$), $0{,}9600$ ($k = 11$) y $0{,}9471$ ($k = 31$), lo que indica que las macroclases minoritarias, al estar poco representadas, se ven absorbidas por la clase mayoritaria cuando el voto se hace sobre muchos vecinos. Por su parte, el efecto de la métrica fue pequeño: el mejor puntaje fue de $0{,}9673$ con $p = 1$, $0{,}9674$ con $p = 2$ y $0{,}9684$ con $p = 3$, diferencias comparables a la desviación estándar entre pliegues.
+
+\subsubsection{Evaluación del Rendimiento en el Conjunto de Test}
+Al evaluar el modelo óptimo sobre el 30\% de datos independientes ($n =$ 21.241 píxeles), se obtuvo:
+\begin{itemize}
+    \item \textbf{Overall Accuracy (OA):} $0{,}9939$ ($99{,}39\%$, equivalente a 21.112 píxeles clasificados correctamente).
+    \item \textbf{Coeficiente Kappa de Cohen ($\kappa$):} $0{,}9886$.
+    \item \textbf{Precisión Macro:} $0{,}9672$ | \textbf{Recall Macro:} $0{,}9653$ | \textbf{$F_1$-Score Macro:} $0{,}9661$.
+    \item \textbf{$F_1$-Score Ponderado:} $0{,}9939$.
+\end{itemize}
+
+En la Tabla \ref{tab:reporte_knn} se detalla el comportamiento por macroclase en el conjunto de prueba.
+
+\begin{table}[H]
+    \centering
+    \caption{Métricas detalladas por macroclase para el modelo K-Nearest Neighbors (KNN) en el conjunto de test.}
+    \label{tab:reporte_knn}
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        \textbf{Macroclase} & \textbf{Precisión} & \textbf{Recall} & \textbf{$F_1$-Score} & \textbf{Soporte (Píxeles)} \\
+        \midrule
+        Agua & 0,9995 & 0,9993 & 0,9994 & 5.543 \\
+        Urbanización & 0,9265 & 0,8815 & 0,9034 & 329 \\
+        Pasto & 0,9561 & 0,9871 & 0,9713 & 309 \\
+        Veg. Boscosa Sana & 0,9638 & 0,9799 & 0,9718 & 1.194 \\
+        Veg. Boscosa Quemada & 0,9987 & 0,9976 & 0,9982 & 13.348 \\
+        Nubes & 0,9382 & 0,9469 & 0,9425 & 433 \\
+        Sombras & 0,9880 & 0,9647 & 0,9762 & 85 \\
+        \midrule
+        \textbf{Promedio Macro} & \textbf{0,9672} & \textbf{0,9653} & \textbf{0,9661} & \textbf{21.241} \\
+        \textbf{Promedio Ponderado} & \textbf{0,9939} & \textbf{0,9939} & \textbf{0,9939} & \textbf{21.241} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Como muestra la matriz de confusión (Figura \ref{fig:cm_knn}), el modelo clasifica casi perfectamente las clases dominantes: el agua ($F_1 = 0{,}9994$; 5.539 de 5.543 píxeles) y la vegetación boscosa quemada ($F_1 = 0{,}9982$; 13.316 de 13.348 píxeles). Los errores se concentran en dos pares de clases con firmas espectrales parecidas: \textbf{Urbanización y Nubes} (24 píxeles urbanos clasificados como nubes y 15 nubes clasificadas como urbanas) y \textbf{Vegetación Sana y Quemada} (26 píxeles quemados clasificados como sanos y 12 en sentido inverso). La clase más débil fue Urbanización ($F_1 = 0{,}9034$), cuyo recall de $0{,}8815$ refleja que 39 de sus 329 píxeles fueron asignados a otras coberturas, principalmente nubes y vegetación sana. En comparación con los demás modelos, el $F_1$ macro de KNN ($0{,}9661$) supera al de la regresión logística ($0{,}9347$) y al del árbol de decisión ($0{,}9568$), pero queda por debajo del ensamble Random Forest ($0{,}9729$), de la red neuronal ($0{,}9744$) y del SVM ($0{,}9788$).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.72\textwidth]{matriz_confusion_knn.jpg}
+    \caption{Matriz de confusión del modelo K-Nearest Neighbors (KNN) sobre el conjunto de test (21.241 píxeles).}
+    \label{fig:cm_knn}
+\end{figure}
+
+\noindent \textbf{Consideraciones sobre el uso de KNN:} Que el valor óptimo sea $k = 1$ sugiere que los píxeles de una misma cobertura forman grupos muy compactos en el espacio espectral. No obstante, como los píxeles de entrenamiento y de prueba provienen de los mismos polígonos y son espacialmente contiguos, es probable que cada píxel de prueba tenga un vecino casi idéntico en el conjunto de entrenamiento, lo cual puede hacer que las métricas sean algo optimistas frente a lo que se obtendría en zonas no muestreadas. Adicionalmente, al ser un método basado en instancias, KNN debe comparar cada píxel a clasificar contra todo el conjunto de entrenamiento (49.561 píxeles), lo que lo hace más costoso computacionalmente que los demás modelos en la fase de inferencia sobre el ráster completo.
+
+\section{Análisis comparativo y elección del mejor modelo}
+
+A partir de los resultados obtenidos sobre el conjunto de prueba independiente ($n = 21.241$ píxeles), se consolidó una evaluación comparativa de las cinco arquitecturas de Machine Learning implementadas. La Tabla \ref{tab:comparativa_modelos} sintetiza el desempeño global de cada clasificador, ordenado jerárquicamente según su $F_1$-Score Macro.
+
+\begin{table}[H]
+    \centering
+    \caption{Tabla comparativa de rendimiento global de los modelos de Machine Learning sobre el conjunto de test.}
+    \label{tab:comparativa_modelos}
+    \begin{tabular}{@{}lccccc@{}}
+        \toprule
+        \textbf{Modelo} & \textbf{Overall Accuracy} & \textbf{Kappa ($\kappa$)} & \textbf{$F_1$-Macro} & \textbf{$F_1$-Ponderado} & \textbf{Ranking} \\
+        \midrule
+        \textbf{SVM (RBF)} & \textbf{0,9962} & \textbf{0,9928} & \textbf{0,9788} & \textbf{0,9962} & \textbf{1} \\
+        ANN (MLP) & 0,9958 & 0,9921 & 0,9744 & 0,9958 & 2 \\
+        Random Forest (Bono) & 0,9951 & 0,9907 & 0,9729 & 0,9951 & 3 \\
+        KNN & 0,9939 & 0,9886 & 0,9661 & 0,9939 & 4 \\
+        Decision Tree (DT) & 0,9928 & 0,9865 & 0,9568 & 0,9928 & 5 \\
+        Logistic Regression (LR) & 0,9902 & 0,9815 & 0,9347 & 0,9901 & 6 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Modelo Ganador - Support Vector Machine (SVM)}
+El clasificador de support vector machine se consolida como la arquitectura óptima. Si bien los seis modelos evaluados superaron el 99\% de \textit{Overall Accuracy}, un comportamiento esperado dada la naturaleza del dataset y la alta separabilidad de las clases dominantes, el análisis debe centrarse en el score Macro y el coeficiente Kappa, métricas que penalizan el sesgo hacia las clases mayoritarias.
+
+El SVM lideró ambas métricas (con $F_1$-Macro de $0,9788$ y $\kappa = 0,9928$), demostrando una superioridad estadística y no solo anecdótica. Su éxito radica en dos factores clave:
+\begin{enumerate}
+    \item \textbf{Margen máximo en clases minoritarias:} El SVM resolvió de manera sobresaliente la discriminación de las clases más críticas. Logró un $F_1$-score de $0,9291$ en Urbanización (frente al $0,8602$ del DT y $0,9135$ de la ANN) y un $F_1$ de $0,9564$ en Nubes. La matriz de confusión (Figura \ref{fig:cm_svm}) demuestra que el modelo redujo las confusiones cruzadas entre techos urbanos y nubosidad a niveles marginales (19 y 15 píxeles, respectivamente), un desafío espectral que los modelos lineales y los árboles simples no lograron superar.
+    \item \textbf{Precisión perfecta en Sombras:} El modelo obtuvo un $100\%$ de precisión (cero falsos positivos) en la clase de sombras, algo muy bueno teniendo en cuenta la escasez de muestras (solo 85 píxeles en test, y siendo la más problemática) y la similitud radiométrica que esta cobertura guarda con la vegetación quemada.
+
+\end{enumerate}
+\clearpage
+
+
+
+\renewcommand{\refname}{Referencias}
 
 \bibliographystyle{plain}
 \bibliography{referencias}
