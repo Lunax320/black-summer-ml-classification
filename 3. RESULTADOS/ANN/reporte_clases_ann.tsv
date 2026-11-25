@@ -1,0 +1,8 @@
+Clase	precision	recall	f1-score	support
+Agua	1.0	0.9993	0.9996	5543.0
+Urbanización	0.9756	0.9987	0.987	762.0
+Vegetación boscosa sana	0.984	0.982	0.983	1503.0
+Vegetación boscosa quemada	0.9994	0.9986	0.999	13348.0
+accuracy	0.9976	0.9976	0.9976	0.9976
+macro avg	0.9898	0.9946	0.9922	21156.0
+weighted avg	0.9976	0.9976	0.9976	21156.0

@@ -26,10 +26,10 @@ BAND_NAMES = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B11", "B1
 NOMBRES_MACROCLASES = {
     1: "Agua",
     2: "Urbanización",
-    4: "Vegetación sana",
+    4: "Vegetación boscosa sana",
     5: "Vegetación boscosa quemada",
 }
-FUSIONES_MACROCLASES = {3: 4, 6: 2}  # Pasto → Vegetación sana, Nubes → Urbanización
+FUSIONES_MACROCLASES = {3: 4, 6: 2}  # Pasto → Vegetación boscosa sana, Nubes → Urbanización
 ID_SOMBRAS = 7
 
 

@@ -1,0 +1,65 @@
+rank_test_score	mean_test_score	std_test_score	mean_fit_time	params
+1	0.9915066449527227	0.0016991646169245327	1.268437147140503	{'C': 100, 'class_weight': None, 'gamma': 0.1, 'kernel': 'rbf'}
+1	0.9915066449527227	0.0016991646169245327	1.3971045811971028	{'C': 100, 'class_weight': None, 'gamma': 'scale', 'kernel': 'rbf'}
+1	0.9915066449527227	0.0016991646169245327	1.2027522722880046	{'C': 100, 'class_weight': None, 'gamma': 'auto', 'kernel': 'rbf'}
+4	0.990143470523187	0.0020161925680177327	1.4012008508046467	{'C': 100, 'class_weight': 'balanced', 'gamma': 'scale', 'kernel': 'rbf'}
+5	0.9899336371609707	0.0019189103602418732	1.487376054128011	{'C': 100, 'class_weight': 'balanced', 'gamma': 0.1, 'kernel': 'rbf'}
+5	0.9899336371609707	0.0019189103602418732	1.4173575242360432	{'C': 100, 'class_weight': 'balanced', 'gamma': 'auto', 'kernel': 'rbf'}
+7	0.9896616882814926	0.002393302374766028	1.6905165513356526	{'C': 10, 'class_weight': None, 'gamma': 'scale', 'kernel': 'rbf'}
+8	0.9896610722391389	0.002334509445643882	1.4709909756978352	{'C': 10, 'class_weight': None, 'gamma': 'auto', 'kernel': 'rbf'}
+8	0.9896610722391389	0.002334509445643882	1.5905415217081706	{'C': 10, 'class_weight': None, 'gamma': 0.1, 'kernel': 'rbf'}
+10	0.988506823058097	0.00291637653140556	1.5759186744689941	{'C': 100, 'class_weight': None, 'gamma': 0.01, 'kernel': 'rbf'}
+11	0.9867724427991638	0.001930527349086935	1.991250991821289	{'C': 10, 'class_weight': 'balanced', 'gamma': 0.1, 'kernel': 'rbf'}
+11	0.9867724427991638	0.001930527349086935	1.8970932165781658	{'C': 10, 'class_weight': 'balanced', 'gamma': 'auto', 'kernel': 'rbf'}
+13	0.9867349425845379	0.001981478230893385	1.8424142996470134	{'C': 10, 'class_weight': 'balanced', 'gamma': 'scale', 'kernel': 'rbf'}
+14	0.9847696977725796	0.0020874709149901194	2.011202255884806	{'C': 100, 'class_weight': 'balanced', 'gamma': 0.01, 'kernel': 'rbf'}
+15	0.9845264768873084	0.0014185915697954078	2.1806925932566323	{'C': 10, 'class_weight': None, 'kernel': 'linear'}
+16	0.9843935027475789	0.002475283464160915	2.24090313911438	{'C': 1, 'class_weight': None, 'gamma': 0.1, 'kernel': 'rbf'}
+16	0.9843935027475789	0.002475283464160915	2.4628466765085855	{'C': 1, 'class_weight': None, 'gamma': 'auto', 'kernel': 'rbf'}
+18	0.9843170940145672	0.002380404007794352	2.476879676183065	{'C': 1, 'class_weight': None, 'gamma': 'scale', 'kernel': 'rbf'}
+19	0.9839289664442056	0.0015892616638544285	2.860320727030436	{'C': 100, 'class_weight': None, 'kernel': 'linear'}
+20	0.982803210142961	0.0021188148110516465	2.223968426386515	{'C': 1, 'class_weight': None, 'kernel': 'linear'}
+21	0.982791171140785	0.002669662522841778	2.3030872344970703	{'C': 10, 'class_weight': None, 'gamma': 0.01, 'kernel': 'rbf'}
+22	0.9822926139771534	0.0024106133368865038	3.082188844680786	{'C': 10, 'class_weight': None, 'degree': 3, 'gamma': 'auto', 'kernel': 'poly'}
+22	0.9822926139771534	0.0024106133368865038	2.8839166164398193	{'C': 10, 'class_weight': None, 'degree': 3, 'gamma': 'scale', 'kernel': 'poly'}
+24	0.9813876276417665	0.0027213572258150305	4.179567416508992	{'C': 100, 'class_weight': 'balanced', 'kernel': 'linear'}
+25	0.9812693338871706	0.0018839926762248516	4.09415849049886	{'C': 10, 'class_weight': None, 'degree': 2, 'gamma': 'auto', 'kernel': 'poly'}
+26	0.9811905719850543	0.0018195230888094559	3.8770496050516763	{'C': 10, 'class_weight': None, 'degree': 2, 'gamma': 'scale', 'kernel': 'poly'}
+27	0.9808685497339352	0.0020167638530708223	2.368324120839437	{'C': 10, 'class_weight': 'balanced', 'kernel': 'linear'}
+28	0.9800250193930733	0.0023935479772809833	2.913296937942505	{'C': 1, 'class_weight': 'balanced', 'gamma': 'scale', 'kernel': 'rbf'}
+28	0.9800250193930733	0.0023935479772809833	3.001964251200358	{'C': 1, 'class_weight': 'balanced', 'gamma': 0.1, 'kernel': 'rbf'}
+28	0.9800250193930733	0.0023935479772809833	2.8931733767191568	{'C': 1, 'class_weight': 'balanced', 'gamma': 'auto', 'kernel': 'rbf'}
+31	0.9794408513055668	0.0010850675216049633	5.32506004969279	{'C': 10, 'class_weight': 'balanced', 'degree': 3, 'gamma': 'auto', 'kernel': 'poly'}
+31	0.9794408513055668	0.0010850675216049633	5.4802342255910235	{'C': 10, 'class_weight': 'balanced', 'degree': 3, 'gamma': 'scale', 'kernel': 'poly'}
+33	0.9778360090329622	0.0012148271117915716	3.105690320332845	{'C': 10, 'class_weight': 'balanced', 'gamma': 0.01, 'kernel': 'rbf'}
+34	0.97777006320459	0.00209050673628421	2.609684864679972	{'C': 0.1, 'class_weight': None, 'kernel': 'linear'}
+35	0.9775714463747903	0.0012465872624517875	8.134623686472574	{'C': 10, 'class_weight': 'balanced', 'degree': 2, 'gamma': 'scale', 'kernel': 'poly'}
+36	0.9775577081902798	0.0012289920007385233	7.721166054407756	{'C': 10, 'class_weight': 'balanced', 'degree': 2, 'gamma': 'auto', 'kernel': 'poly'}
+37	0.9769957181406319	0.002727083993325994	4.6813398996988935	{'C': 0.1, 'class_weight': None, 'gamma': 'scale', 'kernel': 'rbf'}
+38	0.9768892412322973	0.002711672861038202	4.648852586746216	{'C': 0.1, 'class_weight': None, 'gamma': 'auto', 'kernel': 'rbf'}
+38	0.9768892412322973	0.002711672861038202	4.6549867788950605	{'C': 0.1, 'class_weight': None, 'gamma': 0.1, 'kernel': 'rbf'}
+40	0.9768159628739355	0.001811948502882653	2.7258264223734536	{'C': 1, 'class_weight': 'balanced', 'kernel': 'linear'}
+41	0.975918023749799	0.0018038565351396164	7.687057018280029	{'C': 1, 'class_weight': 'balanced', 'degree': 3, 'gamma': 'auto', 'kernel': 'poly'}
+42	0.9756841157771686	0.0018491016900865317	8.097226619720459	{'C': 1, 'class_weight': 'balanced', 'degree': 3, 'gamma': 'scale', 'kernel': 'poly'}
+43	0.9743813542842462	0.001534769765111022	3.8915112813313804	{'C': 1, 'class_weight': None, 'gamma': 0.01, 'kernel': 'rbf'}
+44	0.9732509545261024	0.0014960111546582725	4.233843008677165	{'C': 1, 'class_weight': None, 'degree': 3, 'gamma': 'scale', 'kernel': 'poly'}
+45	0.9732096210323572	0.0014444542839527183	4.095245440800984	{'C': 1, 'class_weight': None, 'degree': 3, 'gamma': 'auto', 'kernel': 'poly'}
+46	0.9717662164557289	0.002298533575800979	6.550235191980998	{'C': 1, 'class_weight': None, 'degree': 2, 'gamma': 'scale', 'kernel': 'poly'}
+47	0.9717056306296596	0.0021839733022952623	6.650072971979777	{'C': 1, 'class_weight': None, 'degree': 2, 'gamma': 'auto', 'kernel': 'poly'}
+48	0.971128536392477	0.0017977122186102062	6.334242582321167	{'C': 0.1, 'class_weight': 'balanced', 'gamma': 'scale', 'kernel': 'rbf'}
+49	0.9710030168539058	0.0016129052550961883	6.330673376719157	{'C': 0.1, 'class_weight': 'balanced', 'gamma': 0.1, 'kernel': 'rbf'}
+49	0.9710030168539058	0.0016129052550961883	6.349488973617554	{'C': 0.1, 'class_weight': 'balanced', 'gamma': 'auto', 'kernel': 'rbf'}
+51	0.9694470107846902	0.0010517962178763884	9.94566043217977	{'C': 1, 'class_weight': 'balanced', 'degree': 2, 'gamma': 'scale', 'kernel': 'poly'}
+52	0.9693293380592752	0.0009910438633011517	9.851024468739828	{'C': 1, 'class_weight': 'balanced', 'degree': 2, 'gamma': 'auto', 'kernel': 'poly'}
+53	0.9691230130446797	0.002152363438921324	27.244844277699787	{'C': 0.1, 'class_weight': 'balanced', 'degree': 3, 'gamma': 'auto', 'kernel': 'poly'}
+54	0.9690477691042462	0.00202696686166837	27.249118169148762	{'C': 0.1, 'class_weight': 'balanced', 'degree': 3, 'gamma': 'scale', 'kernel': 'poly'}
+55	0.9680074893580106	0.0008955337356305404	4.035950978597005	{'C': 0.1, 'class_weight': 'balanced', 'kernel': 'linear'}
+56	0.9678729258698949	0.0010890644858692618	5.793346484502156	{'C': 1, 'class_weight': 'balanced', 'gamma': 0.01, 'kernel': 'rbf'}
+57	0.9600846428770046	0.00216003233683408	25.751391569773357	{'C': 0.1, 'class_weight': 'balanced', 'degree': 2, 'gamma': 'auto', 'kernel': 'poly'}
+58	0.9599854125690562	0.0021453867449685556	25.496705532073975	{'C': 0.1, 'class_weight': 'balanced', 'degree': 2, 'gamma': 'scale', 'kernel': 'poly'}
+59	0.958531465003253	0.00020739782404282506	17.947099526723225	{'C': 0.1, 'class_weight': 'balanced', 'gamma': 0.01, 'kernel': 'rbf'}
+60	0.945421370128123	0.0032694884400079303	12.278725624084473	{'C': 0.1, 'class_weight': None, 'degree': 2, 'gamma': 'scale', 'kernel': 'poly'}
+61	0.945131391234242	0.00285031573273594	12.293082157770792	{'C': 0.1, 'class_weight': None, 'degree': 2, 'gamma': 'auto', 'kernel': 'poly'}
+62	0.9443749041828187	0.0038994780831538545	9.43618909517924	{'C': 0.1, 'class_weight': None, 'gamma': 0.01, 'kernel': 'rbf'}
+63	0.9403169828902552	0.0020011364705248397	9.330512603123983	{'C': 0.1, 'class_weight': None, 'degree': 3, 'gamma': 'auto', 'kernel': 'poly'}
+64	0.9402901697127356	0.001999366391458842	9.320177475611368	{'C': 0.1, 'class_weight': None, 'degree': 3, 'gamma': 'scale', 'kernel': 'poly'}

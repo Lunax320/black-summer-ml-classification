@@ -1,8 +1,5 @@
 macroclass_id,macroclass_name
 1,Agua
-2,UrbanizacionA
-3,Pasto
-4,VegetacionBoscosaSana
-5,VegetacionBoscosaQuemada
-6,Nubes
-7,Sombras
+2,Urbanización
+4,Vegetación boscosa sana
+5,Vegetación boscosa quemada
