@@ -29,8 +29,8 @@ from TABULACION.generar_tabulaciones import BAND_NAMES, NOMBRES_MACROCLASES
 
 FILAS_POR_BLOQUE = 128
 NODATA_SALIDA = 0
-NOMBRE_TIF = "Blue_Mountains_Clasificado.tif"
-NOMBRE_CSV = "areas_por_clase.csv"
+NOMBRE_TIF = "Raster_Clasificado.tif"
+NOMBRE_CSV = "areas_por_macroclase.csv"
 
 
 def predecir_mosaico(origen, modelo, scaler, ruta_tif: Path) -> tuple[np.ndarray, float]:

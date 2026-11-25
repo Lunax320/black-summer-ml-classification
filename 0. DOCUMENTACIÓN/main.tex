@@ -571,7 +571,42 @@ El SVM lideró ambas métricas (con $F_1$-Macro de $0,9788$ y $\kappa = 0,9928$)
 \end{enumerate}
 \clearpage
 
+\section{Fase 3: Clasificación del mosaico completo}
+\label{sec:fase3}
 
+\subsection{Predicción del ráster con el SVM}
+
+En esta fase se aplicó el SVM entrenado al mosaico Sentinel-2 de Blue Mountains. Se desarrolló el script \texttt{predecir\_raster.py} para convertir las reflectancias de las diez bandas en un mapa categórico. El script toma como entrada \texttt{Mosaico\_Completo.tif} y carga el modelo, el escalador y el diccionario de clases guardados en el proyecto.
+
+Como el mosaico tiene 5.247 columnas y 6.249 filas, el script lo lee con GDAL en bloques de hasta 128 filas para limitar el uso de memoria. En cada bloque conserva los píxeles con valores finitos y al menos una banda distinta de NoData. Para cada píxel válido, conserva el orden de las diez bandas, convierte los valores a \texttt{int32} como en la tabulación y aplica el escalador guardado en \texttt{scaler.pkl}. Con esos datos, el SVM predice una clase por píxel y el script escribe su código en la fila y columna correspondientes.
+
+Para reproducir la predicción se coloca \texttt{Mosaico\_Completo.tif} junto a \texttt{predecir\_raster.py} y se ejecuta el script con el intérprete de Python de QGIS, que incluye GDAL.
+
+\subsection{GeoTIFF generado y superficie por macroclase}
+
+El script generó \texttt{Raster\_Clasificado.tif}, un GeoTIFF de una banda con los códigos de las cuatro macroclases. Se verificó que conserva las dimensiones, la transformación afín y el sistema de referencia del mosaico original, GDA2020 / MGA zona 56 (EPSG:7856). Cada celda mide $20\,\mathrm{m} \times 20\,\mathrm{m}$. El valor 0 quedó reservado para NoData.
+
+Durante la escritura del GeoTIFF se contaron los píxeles asignados a cada código. Como cada celda cubre $400\,\mathrm{m}^2$ o $0{,}04\,\mathrm{ha}$, se multiplicó el conteo de cada clase por el área de una celda. El script guardó los conteos y las superficies en \texttt{areas\_por\_macroclase.csv}. La Tabla \ref{tab:fase3_superficie} muestra también la proporción de cada macroclase sobre los 16.071.574 píxeles válidos. Los conteos del CSV se verificaron contra los valores del GeoTIFF.
+
+\begin{table}[H]
+    \centering
+    \caption{Superficie por macroclase en el área válida del mosaico clasificado.}
+    \label{tab:fase3_superficie}
+    \begin{tabular}{@{}clrrr@{}}
+        \toprule
+        \textbf{ID} & \textbf{Macroclase} & \textbf{Píxeles} & \textbf{Superficie (ha)} & \textbf{Área válida (\%)} \\
+        \midrule
+        1 & Agua & 509.115 & 20.364,60 & 3,17 \\
+        2 & Urbanización & 1.937.647 & 77.505,88 & 12,06 \\
+        4 & Vegetación boscosa sana & 5.615.829 & 224.633,16 & 34,94 \\
+        5 & Vegetación boscosa quemada & 8.008.983 & 320.359,32 & 49,83 \\
+        \midrule
+        \multicolumn{2}{@{}l}{\textbf{Total}} & \textbf{16.071.574} & \textbf{642.862,96} & \textbf{100,00} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+La mayor superficie asignada por el modelo correspondió a Vegetación boscosa quemada, que cubre cerca de la mitad del área válida del mosaico.
 
 \renewcommand{\refname}{Referencias}
 
