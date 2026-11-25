@@ -6,14 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, StratifiedKFold
-from evaluar_modelos import guardar_pruebas_hpo, evaluar_y_guardar
+from evaluar_modelos import DATASET_DIR, RESULTADOS_DIR as RESULTADOS_MODELOS, guardar_pruebas_hpo, evaluar_y_guardar
 
-# Rutas a la base generada por base_modelos.py
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SCRIPTS_DIR = os.path.dirname(BASE_DIR)
-PROJECT_DIR = os.path.dirname(SCRIPTS_DIR)
-DATASET_DIR = os.path.join(BASE_DIR, "dataset_base")
-RESULTADOS_DIR = os.path.join(PROJECT_DIR, "3. RESULTADOS", "RF")
+RESULTADOS_DIR = os.path.join(RESULTADOS_MODELOS, "RF")
 
 os.makedirs(RESULTADOS_DIR, exist_ok=True)
 

@@ -18,7 +18,7 @@ SCRIPTS_DIR = os.path.dirname(BASE_DIR)                    # .../2. SCRIPTS
 PROJECT_DIR = os.path.dirname(SCRIPTS_DIR)                 # Raiz del proyecto
 
 DATASET_DIR = os.path.join(BASE_DIR, "dataset_base")
-RESULTADOS_DIR = os.path.join(PROJECT_DIR, "3. RESULTADOS")
+RESULTADOS_DIR = os.path.join(PROJECT_DIR, "3. RESULTADOS", "MODELOS ML")
 
 clases_df = pd.read_csv(os.path.join(DATASET_DIR, "diccionario_clases.csv")).sort_values("macroclass_id")
 CLASS_IDS = clases_df["macroclass_id"].tolist()
